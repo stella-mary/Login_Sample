@@ -1,35 +1,38 @@
-import React, { useState } from "react";
+import React from "react";
 import Add from '../img/addAvatar.png'
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth, storage } from "../firebase";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
 
 const Register = () => { 
 
-    const [err, setErr] = useState(false)
-  
-    const handleSubmit = async (e) => {
-      e.preventDefault()
-      const displayName = e.target[0].value;
-      const email = e.target[1].value;
-      const password = e.target[2].value;
-      const file = e.target[3].files[0];
-  
-      uploadTask.on(
-         
-          (error) => {
-            setErr(true);
-          }, 
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then( async (downloadURL) => {
-              await updateProfile(result.user,)
-            });
-          }
-        );
+  const handleSubmit = (e)=>{
+    e.preventDefault()
+    const displayName = (e.target[0].value)
+    const email = (e.target[1].value)
+    const password = (e.target[2].value)
+    const file = (e.target[3].files[0])
+
+
     
-      
+
+
+createUserWithEmailAndPassword(auth, email, password)
+  .then((userCredential) => {
+    // Signed in 
+    const user = userCredential.user;
+    
+    console.log(user)
+    // ...
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    // ..
+  });
+  }
+
+
       return (
           <div className='formContainer'>
               <div className='formWrapper'>
@@ -45,18 +48,16 @@ const Register = () => {
                         <span>Add an avatar</span>
                       </label>
                       <button>Sign up</button>
-                      {err && <span>Something went wrong</span>}
                   </form>
                   <p>You do have an account? Login</p>
           </div>
           </div>
         )
       }
-      }
+      
       
   
  
 export default Register;
-
 
 
