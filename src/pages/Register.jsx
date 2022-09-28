@@ -1,37 +1,48 @@
-import React from "react";
+import React, {useState} from "react";
 import Add from '../img/addAvatar.png'
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
-
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth, db, storage } from "../firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { doc, setDoc } from "firebase/firestore";
 
 const Register = () => { 
+  const [err, setErr] = useState(false)
 
-  const handleSubmit = (e)=>{
+  const handleSubmit = async (e)=>{
     e.preventDefault()
     const displayName = (e.target[0].value)
     const email = (e.target[1].value)
     const password = (e.target[2].value)
     const file = (e.target[3].files[0])
 
+    try{
+    const result = await createUserWithEmailAndPassword(auth, email, password);
 
+    const storageRef = ref(storage, displayName);
     
-
-
-createUserWithEmailAndPassword(auth, email, password)
-  .then((userCredential) => {
-    // Signed in 
-    const user = userCredential.user;
+    const uploadTask = uploadBytesResumable(storageRef, file);
     
-    console.log(user)
-    // ...
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // ..
-  });
-  }
+    
+    uploadTask.on(
+      (error) => {
+      setErr(true);  
+      }, 
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then( async (downloadURL) => {
+          await updateProfile(result.user,{
+            displayName,
+            photoURL: downloadURL,
+          })
+        });
+      }
+    ); 
 
+    await setDoc(doc())
+
+    } catch (err) {
+      setErr(true);
+    }
+  };
 
       return (
           <div className='formContainer'>
@@ -48,6 +59,7 @@ createUserWithEmailAndPassword(auth, email, password)
                         <span>Add an avatar</span>
                       </label>
                       <button>Sign up</button>
+                      {err & <span>Somethine went wrong</span>}
                   </form>
                   <p>You do have an account? Login</p>
           </div>
@@ -59,5 +71,3 @@ createUserWithEmailAndPassword(auth, email, password)
   
  
 export default Register;
-
-
